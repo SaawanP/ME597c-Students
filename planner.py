@@ -1,3 +1,4 @@
+from math import exp
 # Type of planner
 POINT_PLANNER=0; TRAJECTORY_PLANNER=1
 
@@ -23,9 +24,15 @@ class planner:
         y = goalPoint[1]
         return x, y
 
-    # TODO Part 6: Implement the trajectories here
     def trajectory_planner(self):
-        pass
+        TYPE = "parabola"
+        # TYPE = "sigmoid"
+
+        trajectory = []
+        if TYPE == 'parabola':
+            trajectory = [[x/10, (x/10)**2] for x in range(15)]
+        elif TYPE == 'sigmoid':
+            trajectory = [[x/10, 2 / (1+exp(-2*x/10)) + 1] for x in range(25)]
         # the return should be a list of trajectory points: [ [x1,y1], ..., [xn,yn]]
-        # return 
+        return trajectory
 

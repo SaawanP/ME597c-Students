@@ -2,7 +2,7 @@ from rclpy.time import Time
 from utilities import Logger
 
 # Controller type
-P=0 # poportional
+P=0 # proportional
 PD=1 # proportional and derivative
 PI=2 # proportional and integral
 PID=3 # proportional, integral, derivative
@@ -22,7 +22,7 @@ class PID_ctrl:
         self.ki=ki    # integral gain
         
         self.logger=Logger(filename_)
-        # Remeber that you are writing to the file named filename_ or errors.csv the following:
+        # Remember that you are writing to the file named filename_ or errors.csv the following:
             # error, error_dot, error_int and time stamp
 
     
@@ -42,11 +42,11 @@ class PID_ctrl:
         
         self.history.append(stamped_error)        
         
-        if (len(self.history) > self.history_length):
+        if len(self.history) > self.history_length:
             self.history.pop(0)
         
         # If insufficient data points, use only the proportional gain
-        if (len(self.history) != self.history_length):
+        if len(self.history) != self.history_length:
             return self.kp * latest_error
         
         # Compute the error derivative
@@ -57,16 +57,17 @@ class PID_ctrl:
             
             t0=Time.from_msg(self.history[i-1][1])
             t1=Time.from_msg(self.history[i][1])
-            
+            e0 = self.history[i-1][0]
+            e1 = self.history[i][0]
+
             dt=(t1.nanoseconds - t0.nanoseconds) / 1e9
             
             dt_avg+=dt
 
             # use constant dt if the messages arrived inconsistent
             # for example dt=0.1 overwriting the calculation          
-            
-            # TODO Part 5: calculate the error dot 
-            # error_dot+= ... 
+
+            error_dot +=  (e1-e0)/dt
             
         error_dot/=len(self.history)
         dt_avg/=len(self.history)
@@ -74,28 +75,19 @@ class PID_ctrl:
         # Compute the error integral
         sum_=0
         for hist in self.history:
-            # TODO Part 5: Gather the integration
-            # sum_+=...
-            pass
+            sum_+= hist[0]
         
         error_int=sum_*dt_avg
-        
-        # TODO Part 4: Log your errors
-        self.logger.log_values( ... )
-        
-        # TODO Part 4: Implement the control law of P-controller
+        self.logger.log_values([latest_error, error_dot, error_int, stamp])
+
         if self.type == P:
-            return ... # complete
-        
-        # TODO Part 5: Implement the control law corresponding to each type of controller
+            return self.kp * latest_error
+
         elif self.type == PD:
-            pass
-            # return ... # complete
+            return self.kp * latest_error + self.kv * error_dot
         
         elif self.type == PI:
-            pass
-            # return ... # complete
+            return self.kp * latest_error + self.ki * error_int
         
         elif self.type == PID:
-            pass
-            # return ... # complete
+            return self.kp * latest_error + self.ki * error_int + self.kv * error_dot
